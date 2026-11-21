@@ -65,8 +65,8 @@ jobs:
         working-directory: frontend
 
       # Tauri CLI'yı npm'den kur: hazır ikili, cargo install'dan çok daha hızlı.
-      - name: Tauri CLI (npm)
-        run: npm install -g @tauri-apps/cli@^2
+      - name: Tauri CLI (cargo)
+        run: cargo install tauri-cli --version "^2" --locked
 
       - name: Cargo önbelleği
         uses: actions/cache@v4
@@ -81,10 +81,10 @@ jobs:
       # İkonlar repoda zaten var (src-tauri/icons/). Yeniden üretmeye gerek yok.
 
       - name: Android projesini ilkle
-        run: tauri android init
+        run: cargo tauri android init
 
       - name: Debug APK derle (kurulabilir)
-        run: tauri android build --apk --debug
+        run: cargo tauri android build --apk --debug
 
       - name: APK'ları topla
         uses: actions/upload-artifact@v4
