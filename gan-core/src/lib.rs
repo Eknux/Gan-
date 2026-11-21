@@ -26,3 +26,4 @@ pub use models::{
 };
 pub use session::{SessionManager, StreamEvent};
 pub use store::Store;
+pub use api::Client;
