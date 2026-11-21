@@ -39,14 +39,10 @@
     ],
     "category": "Productivity",
     "shortDescription": "z.ai sohbet istemcisi",
-    "longDescription": "Gan — z.ai (GLM) için Rust ve Tauri 2 ile yazılmış açık kaynaklı mobil sohbet istemcisi."
-  },
-  "android": {
-    "versionCode": 2,
-    "versionName": "0.2.0",
-    "minSdkVersion": 24
-  },
-  "ios": {
-    "version": "0.2.0"
+    "longDescription": "Gan — z.ai (GLM) için Rust ve Tauri 2 ile yazılmış açık kaynaklı mobil sohbet istemcisi.",
+    "android": {
+      "minSdkVersion": 24,
+      "versionCode": 2
+    }
   }
 }
