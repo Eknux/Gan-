@@ -45,10 +45,7 @@ jobs:
       - name: Android SDK + NDK
         uses: android-actions/setup-android@v3
         with:
-          packages: |
-            platforms;android-34
-            build-tools;34.0.0
-            ndk;${{ env.NDK_VERSION }}
+          packages: 'platforms;android-34 build-tools;34.0.0 ndk;${{ env.NDK_VERSION }}'
 
       - name: NDK yolunu ayarla
         run: |
