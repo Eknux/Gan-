@@ -1,0 +1,21 @@
+{
+  "name": "gan-v2",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Gan v2 — z.ai (GLM) için Rust + Tauri 2 mobil sohbet istemcisi",
+  "scripts": {
+    "frontend:install": "npm --prefix frontend install",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "icons": "python3 scripts/gen_icons.py",
+    "android:init": "cargo tauri android init",
+    "android:dev": "cargo tauri android dev",
+    "android:build": "cargo tauri android build --apk",
+    "ios:init": "cargo tauri ios init",
+    "ios:dev": "cargo tauri ios dev",
+    "ios:build": "cargo tauri ios build",
+    "dev": "cargo tauri dev",
+    "build": "cargo tauri build",
+    "core:test": "cd gan-core && cargo test"
+  }
+}

@@ -1,0 +1,33 @@
+# Rust
+target/
+**/*.rs.bk
+# Cargo.lock commit edilir (uygulama crate'i için tekrarlanabilir derleme).
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+*.log
+
+# Tauri üretimi (cihaz/CI'da yeniden üretilir)
+src-tauri/gen/
+src-tauri/WixTools/
+
+# Android (gen altında)
+src-tauri/gen/android/.gradle/
+src-tauri/gen/android/build/
+src-tauri/gen/android/app/build/
+src-tauri/gen/android/local.properties
+*.apk
+*.aab
+*.keystore
+!*.keystore.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Yerel veri (test sırasında üretilebilir)
+gan.json
+master.key

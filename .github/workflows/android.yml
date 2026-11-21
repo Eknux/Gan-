@@ -1,0 +1,113 @@
+# Gan v2 — Android APK derleme CI.
+#
+# GitHub'a push yapınca kurulabilir bir debug APK üretir ve artifact olarak yayınlar.
+# Debug APK, Android'in debug imza anahtarıyla otomatik imzalanır → telefona direkt kurulur.
+# (Play Store için release imzalamayı ayrıca yapmanız gerekir; aşağıda "İmzalama" notu.)
+#
+# NEDEN CI? Termux (telefon üzerindeki Rust) proc-macro crate'lerini derleyemez
+# (serde/thiserror/syn gibi), rustup yoktur ve Android çapraz-derleme toolchain'i
+# eksiktir. Bu yüzden derleme github'ın ubuntu runner'ında yapılır — tıpkı Gan v1'de
+# olduğu gibi.
+
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  # NDK 27 (Tauri 2 önerisi). CI kurar; alttaki adımda yol env'e yazılır.
+  NDK_VERSION: "27.0.12077973"
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Rust toolchain + Android hedefleri
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Android SDK + NDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platforms;android-34
+            build-tools;34.0.0
+            ndk;${{ env.NDK_VERSION }}
+
+      - name: NDK yolunu ayarla
+        run: |
+          echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Frontend bağımlılıkları
+        run: npm ci
+        working-directory: frontend
+
+      # Tauri CLI'yı npm'den kur: hazır ikili, cargo install'dan çok daha hızlı.
+      - name: Tauri CLI (npm)
+        run: npm install -g @tauri-apps/cli@^2
+
+      - name: Cargo önbelleği
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: android-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: android-${{ runner.os }}-
+
+      # İkonlar repoda zaten var (src-tauri/icons/). Yeniden üretmeye gerek yok.
+
+      - name: Android projesini ilkle
+        run: tauri android init
+
+      - name: Debug APK derle (kurulabilir)
+        run: tauri android build --apk --debug
+
+      - name: APK'ları topla
+        uses: actions/upload-artifact@v4
+        with:
+          name: gan-android-apk
+          path: |
+            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+# ──────────────────────────────────────────────────────────────────────────────
+# İmzalama (release / Play Store)
+#
+# Yukarıdaki --debug, debug keystore ile imzalar → kendi telefonuna kurulabilir.
+# Play Store veya dağıtım için imzalı release APK/AAB gerekirse:
+#   1. Bir keystore üret: keytool -genkey -v -keystore gan.keystore -keyalg RSA \
+#        -keysize 2048 -validity 10000 -alias gan
+#   2. GitHub Secrets'a ekle: GAN_KEYSTORE (base64), GAN_KEYSTORE_PASS,
+#      GAN_KEY_ALIAS, GAN_KEY_PASS.
+#   3. src-tauri/gen/android/app/build.gradle.kts içine signingConfigs + release
+#      bloğunu ekle (Tauri belgeleri: tauri.app/distribute/android).
+#   4. Yukarıdaki derleme adımını `tauri android build --apk` (release) yap.
+# ──────────────────────────────────────────────────────────────────────────────

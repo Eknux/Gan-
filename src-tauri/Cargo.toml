@@ -1,0 +1,36 @@
+[package]
+name = "gan-app"
+version = "0.2.0"
+description = "Gan v2 — z.ai (GLM) için Rust + Tauri 2 mobil istemcisi"
+authors = ["Gan"]
+edition = "2021"
+rust-version = "1.77"
+license = "MIT"
+
+# Mobil için lib crate (JNI giriş noktası statik/cdylib ister);
+# masaüstü için normal bin. Tauri 2 şablonuyla aynı düzen.
+[lib]
+name = "gan_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Tauri 2 çekirdeği. Dışarıya HTTP isteği Rust içinde (gan-core/reqwest) yapıldığı
+# için ekstra bir HTTP plugin gerekmez; JS `fetch` kullanılmaz.
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Çekirdek kütüphane (path).
+gan-core = { path = "../gan-core" }
+
+# Loglama (mobile logcat / masaüstü stderr).
+log = "0.4"
+
+[features]
+# Bu özellik Tauri CLI tarafından mobil hedeflerde etkinleştirilir.
+default = []
